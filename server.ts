@@ -1,1 +1,1 @@
-console.log("Welcome to Niraj Server");
+console.log("Hello World From Outside the World!");
