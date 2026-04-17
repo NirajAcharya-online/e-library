@@ -35,10 +35,10 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
     return next(createHttpError(500, 'Error while ceating user!'));
   }
   try {
-   const  token = jwt.sign({ sub: newUser._id.toString() }, config.jwtSecret, {
+    const token = jwt.sign({ sub: newUser._id.toString() }, config.jwtSecret, {
       expiresIn: '7d',
     });
-    return res.status(200).json({
+    return res.status(201).json({
       accessToken: token,
       message: 'User registered Sucessfully!',
     });
@@ -46,4 +46,12 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
     return next(createHttpError(500, 'Error while signing token!'));
   }
 };
-export { createUser };
+const loginUser = async (req: Request, res: Response, next: NextFunction) => {
+  const { email, password } = req.body;
+  res.status(200).json({
+    email,
+    password,
+    message: 'Login Successfull!',
+  });
+};
+export { createUser, loginUser };
