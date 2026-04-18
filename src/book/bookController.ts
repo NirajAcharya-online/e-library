@@ -84,7 +84,6 @@ const createBook = async (req: Request, res: Response, next: NextFunction) => {
 
 // Updating Book Controller
 const updateBook = async (req: Request, res: Response, next: NextFunction) => {
- 
   // Handling the typecaste error
   const _req = req as AuthRequest;
   const files = req.files as { [fieldname: string]: Express.Multer.File[] };
@@ -164,4 +163,17 @@ const updateBook = async (req: Request, res: Response, next: NextFunction) => {
     updatedBook,
   });
 };
-export { createBook, updateBook };
+
+// Controller to list books
+const listBooks = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const book = await Book.find(); // Pagination will be introduced later.....
+    res.json({ book });
+  } catch (error) {
+    return next(createHttpError(500, 'Error while getting books '));
+  }
+  res.json({
+    message: 'All Books listed!',
+  });
+};
+export { createBook, updateBook, listBooks };
