@@ -112,6 +112,9 @@ const updateBook = async (req: Request, res: Response, next: NextFunction) => {
 
   // Uploading new CoverImage to Cloudinary
   if (coverImageFile) {
+    const coverFileSplits = book.coverImage.split('/');
+    const coverImagePublicId =
+      coverFileSplits.at(-2) + '/' + coverFileSplits.at(-1)?.split('.').at(-2);
     const coverImageMimeType =
       coverImageFile?.mimetype.split('/').at(-1) ?? 'png';
     const fileName = String(coverImageFile?.filename);
@@ -122,6 +125,7 @@ const updateBook = async (req: Request, res: Response, next: NextFunction) => {
       format: coverImageMimeType,
     });
     completeCoverImage = uploadResult.secure_url;
+    await cloudinary.uploader.destroy(coverImagePublicId);
     await deleteLocalFile(filePath);
   }
 
@@ -130,6 +134,9 @@ const updateBook = async (req: Request, res: Response, next: NextFunction) => {
     const bookFileMimeType = bookFile?.mimetype.split('/').at(-1) ?? 'pdf';
     const bookFileName = String(bookFile?.filename);
     const bookFilePath = String(bookFile?.path);
+    const bookFileSplits = book.file.split('/');
+    const bookFilePublicId =
+      bookFileSplits.at(-2) + '/' + bookFileSplits.at(-1);
 
     // Uploading new file to the cloudinary
     const bookFileUploadResult = await cloudinary.uploader.upload(
@@ -142,7 +149,10 @@ const updateBook = async (req: Request, res: Response, next: NextFunction) => {
       }
     );
     completeBook = bookFileUploadResult.secure_url;
-    deleteLocalFile(bookFilePath);
+    await cloudinary.uploader.destroy(bookFilePublicId, {
+      resource_type: 'raw',
+    });
+    await deleteLocalFile(bookFilePath);
   }
 
   const updatedBook = await Book.findOneAndUpdate(
