@@ -2,8 +2,15 @@ import type { NextFunction, Request, Response } from 'express';
 import cloudinary from '../config/cloudinary.js';
 import createHttpError from 'http-errors';
 import { Book } from './bookModel.js';
+import fs from 'node:fs';
+import { deleteLocalFile } from '../utils/fileRemover.js';
+import type { IBook } from './bookTypes.js';
+import { Types } from 'mongoose';
 const createBook = async (req: Request, res: Response, next: NextFunction) => {
+  // Setup for handling the typescript error
+
   const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+
   // Extracting data given by the client!
   const { title, genere } = req.body;
   const coverImageFile = files?.coverImage?.[0];
@@ -13,21 +20,19 @@ const createBook = async (req: Request, res: Response, next: NextFunction) => {
     return next(createHttpError(400, 'Cover Image is necessary!'));
   }
 
-  // Extracting details of coverImage for cloudinary
-  const coverImageMimeType =
-    coverImageFile?.mimetype.split('/').at(-1) ?? 'png';
-  const fileName = String(coverImageFile?.filename);
-  const filePath = String(coverImageFile?.path);
-
-  // Uploading cover Image in clodinary!!
-
   try {
+    // Extracting details of coverImage for cloudinary
+    const coverImageMimeType =
+      coverImageFile?.mimetype.split('/').at(-1) ?? 'png';
+    const fileName = String(coverImageFile?.filename);
+    const filePath = String(coverImageFile?.path);
+
+    // Uploading cover Image in clodinary!!
     const uploadResult = await cloudinary.uploader.upload(filePath, {
       filename_override: fileName,
       folder: 'book-covers',
       format: coverImageMimeType,
     });
-    console.log('Upload successfull');
 
     // Extacting details of book for cloudinary
     const bookFileMimeType = bookFile?.mimetype.split('/').at(-1) ?? 'pdf';
@@ -44,18 +49,29 @@ const createBook = async (req: Request, res: Response, next: NextFunction) => {
         format: bookFileMimeType,
       }
     );
-    console.log(bookFileUploadResult);
 
-    // Uploading files Url to Database
+    // Uploading cloudinary url and userdata to database
+    let newBook: IBook;
+    try {
+      newBook = await Book.create({
+        title,
+        genere,
+        author: new Types.ObjectId('69e1a77f65323ea5482b0736'),
+        coverImage: uploadResult.secure_url,
+        file: bookFileUploadResult.secure_url,
+      });
+    } catch (error) {
+      return next(
+        createHttpError(500, 'Error while uploading to the database ')
+      );
+    }
 
-    const newBook = await Book.create({
-      title,
-      genere,
-      coverImage: uploadResult.secure_url,
-      file: bookFileUploadResult.secure_url,
-    });
+    // Detete temp files from the server
+    await deleteLocalFile(filePath);
+    await deleteLocalFile(bookFilePath);
 
-    return res.json({
+    return res.status(200).json({
+      id: newBook._id,
       message: 'Welcome to the createBook route ',
     });
   } catch (error) {
