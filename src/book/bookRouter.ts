@@ -6,7 +6,7 @@ import multer from 'multer';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const upload = multer({
   dest: path.resolve(__dirname, '../../public/data/uploads'),
-  limits: { fileSize: 3e7 }, // 3e7 => 30mb 3 to the power 7
+  limits: { fileSize: 10 * 1024 * 1024 },
 });
 const bookRouter = Router();
 
