@@ -176,4 +176,23 @@ const listBooks = async (req: Request, res: Response, next: NextFunction) => {
     message: 'All Books listed!',
   });
 };
-export { createBook, updateBook, listBooks };
+
+// Controller to  get a single book
+const getBook = async (req: Request, res: Response, next: NextFunction) => {
+  const { bookId } = req.params;
+  if (!bookId) {
+    return next(createHttpError(400, 'Bad Request!'));
+  }
+  try {
+    const book = await Book.findOne({ _id: bookId });
+    if (!book) {
+      return next(createHttpError(404, 'Book not found!'));
+    }
+    res.json({
+      book,
+    });
+  } catch (error) {
+    return next(createHttpError(500, 'Error while getting the book!'));
+  }
+};
+export { createBook, updateBook, listBooks, getBook };
