@@ -195,4 +195,48 @@ const getBook = async (req: Request, res: Response, next: NextFunction) => {
     return next(createHttpError(500, 'Error while getting the book!'));
   }
 };
-export { createBook, updateBook, listBooks, getBook };
+
+// Controller to delete a book
+
+const deleteBook = async (req: Request, res: Response, next: NextFunction) => {
+  const { bookId } = req.params;
+  const _req = req as AuthRequest;
+  if (!bookId) {
+    return next(createHttpError(400, 'Bad Request!'));
+  }
+  let book;
+  try {
+    book = await Book.findOne({ _id: bookId });
+    if (!book) {
+      return next(createHttpError(404, 'Book not found '));
+    }
+    // Checking wheather the client is the author;
+  } catch (error) {
+    return next(createHttpError(500, 'Error while deleting a book !'));
+  }
+  if (book.author.toString() !== _req.userId) {
+    return next(createHttpError(403, 'Unathorixed to access the resouce!'));
+  }
+  try {
+    const coverFileSplits = book.coverImage.split('/');
+    const coverImagePublicId =
+      coverFileSplits.at(-2) + '/' + coverFileSplits.at(-1)?.split('.').at(-2);
+    const bookFileSplits = book.file.split('/');
+    const bookFilePublicId =
+      bookFileSplits.at(-2) + '/' + bookFileSplits.at(-1);
+    await cloudinary.uploader.destroy(coverImagePublicId);
+    await cloudinary.uploader.destroy(bookFilePublicId, {
+      resource_type: 'raw',
+    });
+  } catch (error) {
+    next(createHttpError(500, 'Eroor while destroying file '));
+  }
+
+  // Deleting From database
+  try {
+    await Book.deleteOne({ _id: bookId });
+  } catch (error) {}
+  res.sendStatus(204);
+};
+
+export { createBook, updateBook, listBooks, getBook, deleteBook };
