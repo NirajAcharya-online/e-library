@@ -2,8 +2,15 @@ import express from 'express';
 import globalErrorHandler from './middlewares/globalErrorHandler.js';
 import userRouter from './user/userRouter.js';
 import bookRouter from './book/bookRouter.js';
+import cors from 'cors';
+import { config } from './config/config.js';
 const app = express();
-app.use(express.json())
+app.use(
+  cors({
+    origin: config.url,
+  })
+);
+app.use(express.json());
 
 // Routes
 app.get('/', (req, res, next) => {
@@ -11,8 +18,8 @@ app.get('/', (req, res, next) => {
     message: 'Welcome to e-library!',
   });
 });
-app.use("/api/users",userRouter);
-app.use("/api/books" ,bookRouter)
+app.use('/api/users', userRouter);
+app.use('/api/books', bookRouter);
 
 // Global Error Handler
 app.use(globalErrorHandler);
