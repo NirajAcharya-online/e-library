@@ -5,6 +5,8 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { config } from '../config/config.js';
 import type { IUser } from './userTypes.js';
+
+// For registering User 
 const createUser = async (req: Request, res: Response, next: NextFunction) => {
   const { name, email, password } = req.body;
   if (!name || !email || !password) {
@@ -46,6 +48,8 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
     return next(createHttpError(500, 'Error while signing token!'));
   }
 };
+
+// For logining User 
 const loginUser = async (req: Request, res: Response, next: NextFunction) => {
   const { email, password } = req.body;
   if (!email || !password) {

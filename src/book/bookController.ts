@@ -2,17 +2,18 @@ import type { NextFunction, Request, Response } from 'express';
 import cloudinary from '../config/cloudinary.js';
 import createHttpError from 'http-errors';
 import { Book } from './bookModel.js';
-import fs from 'node:fs';
 import { deleteLocalFile } from '../utils/fileRemover.js';
 import type { IBook } from './bookTypes.js';
 import { Types } from 'mongoose';
+import type { AuthRequest } from '../middlewares/authenticate.js';
 const createBook = async (req: Request, res: Response, next: NextFunction) => {
   // Setup for handling the typescript error
-
+  const _req = req as AuthRequest;
   const files = req.files as { [fieldname: string]: Express.Multer.File[] };
 
   // Extracting data given by the client!
   const { title, genere } = req.body;
+  const authorId = _req.userId;
   const coverImageFile = files?.coverImage?.[0];
   const bookFile = files?.file?.[0];
 

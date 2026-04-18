@@ -3,6 +3,7 @@ import { createBook } from './bookController.js';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import multer from 'multer';
+import authenticate from '../middlewares/authenticate.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const upload = multer({
@@ -13,6 +14,7 @@ const bookRouter = Router();
 
 bookRouter.post(
   '/',
+  authenticate,
   upload.fields([
     { name: 'coverImage', maxCount: 1 },
     {
