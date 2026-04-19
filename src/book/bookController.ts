@@ -14,7 +14,7 @@ const createBook = async (req: Request, res: Response, next: NextFunction) => {
   const files = req.files as { [fieldname: string]: Express.Multer.File[] };
 
   // Extracting data given by the client!
-  const { title, genere } = req.body;
+  const { title, genere, description } = req.body;
   const authorId = _req.userId;
   const coverImageFile = files?.coverImage?.[0];
   const bookFile = files?.file?.[0];
@@ -62,6 +62,7 @@ const createBook = async (req: Request, res: Response, next: NextFunction) => {
         author: new Types.ObjectId(authorId),
         coverImage: uploadResult.secure_url,
         file: bookFileUploadResult.secure_url,
+        description,
       });
     } catch (error) {
       return next(
@@ -89,7 +90,7 @@ const updateBook = async (req: Request, res: Response, next: NextFunction) => {
   const files = req.files as { [fieldname: string]: Express.Multer.File[] };
 
   // Extracting the clients data
-  const { title, genere } = req.body;
+  const { title, genere, description } = req.body;
   const bookId = req.params.bookId;
   if (!bookId) {
     return next(createHttpError(201, 'Book id is missing!'));
@@ -162,6 +163,7 @@ const updateBook = async (req: Request, res: Response, next: NextFunction) => {
     {
       title: title,
       genere: genere,
+      description: description ? description : book.description,
       coverImage: completeCoverImage ? completeCoverImage : book.coverImage,
       file: completeBook ? completeBook : book.file,
     },
@@ -177,7 +179,7 @@ const updateBook = async (req: Request, res: Response, next: NextFunction) => {
 // Controller to list books
 const listBooks = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const book = await Book.find(); // Pagination will be introduced later.....
+    const book = await Book.find().populate('author', 'name'); // Pagination will be introduced later.....
     res.json({ book });
   } catch (error) {
     return next(createHttpError(500, 'Error while getting books '));
@@ -194,7 +196,7 @@ const getBook = async (req: Request, res: Response, next: NextFunction) => {
     return next(createHttpError(400, 'Bad Request!'));
   }
   try {
-    const book = await Book.findOne({ _id: bookId });
+    const book = await Book.findOne({ _id: bookId }).populate('author', 'name');
     if (!book) {
       return next(createHttpError(404, 'Book not found!'));
     }

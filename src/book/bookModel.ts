@@ -24,6 +24,10 @@ const BookSchema = new mongoose.Schema<IBook>(
       type: String,
       required: true,
     },
+    description: {
+      type: String,
+      required: true,
+    },
   },
   { timestamps: true }
 );

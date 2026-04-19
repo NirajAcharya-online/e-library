@@ -8,6 +8,7 @@ export interface IBook {
   genere: string;
   coverImage: string;
   file: string;
+  description: string;
   createdAt: Date;
   updatedAt: Date;
 }
